@@ -1,0 +1,25 @@
+One-to-one dwukierunkowa:
+•	Person nadal posiada tylko jeden PersonDetails;
+•	PersonDetails zyskuje pole Person (dwukierunkowy character relacji);
+•	Właścicielem relacji nadal jest Person (pole PersonDetails jest reprezentowane przez klucz obcy person_id);
+
+Do PersonDetails dodajemy:
+
+@OneToOne(mappedBy = "personDetailsBidirectional")
+private Person personBidirectional;
+
+mappedBy = personDetailsBidirectional referuje do pola o tej samej nazwie w klasie Person.
+
+Klasa PersonDetailsDaoImpl:
+
+@Repository
+@Transactional
+public class PersonDetailsDaoImpl {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public PersonDetails get(Long id) {
+        return entityManager.find(PersonDetails.class, id);
+    }
+}

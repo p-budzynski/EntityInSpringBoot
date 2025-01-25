@@ -1,0 +1,164 @@
+Encje w Springu
+
+Encje zarządzane przez JPA:
+Wymagania dla klasy:
+•	Adnotacja @Entity;
+•	Nieprywatny konstruktor bezparametrowy;
+•	Klucz główny prosty (jedno pole) lub złożony (składający się z kilku pól) oznaczony adnotacją @Id;
+
+Wszystkie pola klasy zostaną domyślnie zmapowane na odpowiednie kolumny tabeli o takiej samej nazwie jak pola.
+ Pola mające być wykluczone z mapowania oznaczamy @Transient.
+Adnotacje JPA można umieszczać na polami lub nad getterami (wtedy Hibernate będzie odwoływał  się do pól bezpośrednio lub przez gettery).
+ W praktyce stosuje się adnotacje @Id nad polem, wtedy też Hibernate będzie odwoływał się bezpośrednio do pól, wszystkie inne adnotacje nad getterami
+  zostaną przez Hibernate pominięte.
+
+Klucz prosty i klucz złożony:
+
+Klucz prosty = jedno pole
+Klucz prosty na podstawie jednego pola: adnotacja @Id nad jednym polem. Próba dodania obiektu do bazy danych z ręcznie ustawionym id,
+który już istnieje w bazie – zakończy się wyjątkiem ConstraintViolationException
+
+@Entity
+public class ExchangeEvent {
+
+    @Id
+    private Long id;
+    //...
+}
+
+W powyższym przypadku brakuje strategii generowania klucza więc jego wartość musi być ustawiona po stronie aplikacji przed zapisaniem obiektów.
+Strategie generowania klucza:
+
+Dodanie adnotacji @GeneratedValue pod @Id
+
+Strategie:
+•	AUTO – provider JPA czyli Hibernate sam dobierze strategię (stworzy tabelę np. hibernate_sequence);
+•	IDENTITY – klucz generowany po stronie bazy danych – kolumna id ma automatyczną inkrementację (w MySQL nazywa się to auto_increment);
+•	SEQUENCE – klucz generowany po stronie bazy danych przez sekwencję (utworzy tabele np. hibernate_sequence);
+•	TABLE – klucz generowany za pomocą utworzonej dodatkowej tabeli np. hibernate_sequence (w przypadku providera jakim jest Hibernate);
+
+@Entity
+public class ExchangeEvent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    //...
+}
+
+
+Klucz złożony = kilka pól
+
+Dwa sposoby definiowania:
+•	Adnotacje @Id na kilkoma polami + adnotacja @IdClass nad klasą encji + klasa klucza:
+
+@Entity
+@IdClass(ExchangeEventKey.class)
+public class ExchangeEvent  {
+
+    @Id
+    private Timestamp date;
+    @Id
+    private String currencyFrom; // USD
+    private BigDecimal amountFrom;
+    @Id
+    private String currencyTo; // EUR
+    private BigDecimal amountTo;
+    private BigDecimal exchangeRate;
+    //...
+}
+
+public class ExchangeEventKey  {
+
+    private Timestamp date;
+    private String currencyFrom;
+    private String currencyTo;
+    //koniecznie equals i hashcode
+}
+
+•	Klasa klucza oznaczona adnotacją @Embeddable + klasa encji z polem klasy klucza oznaczonym @EmbeddedId :
+
+@Embeddable
+public class ExchangeEventKey  {
+
+    private Timestamp date;
+    private String currencyFrom;
+    private String currencyTo;
+    // equals, hashcode, gettery/settery
+}
+
+@Entity
+public class ExchangeEvent  {
+
+    @EmbeddedId
+    private ExchangeEventKey key;
+    private BigDecimal amountFrom;
+    private BigDecimal amountTo;
+    private BigDecimal exchangeRate;
+}
+
+
+Konfiguracja mapowania (nazwy tabel i ograniczenia):
+
+Nazwy tabel i kolumn można ustawiać z poziomu klasy za pomocą adnotacji @Table oraz @Column w klasie encji:
+
+@Entity
+@Table(name = "exchange_events")
+public class ExchangeEvent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_event")
+    private Long id;
+    //...
+}
+
+Adnotacje @Table oraz @Column mogą mieć dodatkowe parametry np.:
+•	@Table: schema, indexes, uniqueConstraints;
+•	@Column: name, length, nullable, unique, scale(ilosc miejsc po przecinku), precision(liczba liczb), insertable itd.
+
+@Entity
+@Table(name = "exchange_events", schema = "exchange_event")
+public class ExchangeEvent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_event")
+    private Long id;
+    @Column(name = "transaction_date", nullable = false, unique = true)
+    private Timestamp date;
+    @Column(length = 3)
+    private String currencyFrom;
+    @Column(scale = 2)
+    private BigDecimal amountFrom;
+    @Column(length = 3)
+    private String currencyTo;
+    @Column(scale = 2)
+    private BigDecimal amountTo;
+    @Column(scale = 2)
+    private BigDecimal exchangeRate;
+    //...
+}
+
+Złamanie ograniczenia length rzuci DataException, MysqlDataTruncation, DataIntegrityViolationException.
+Przekroczenie skali typu zmiennoprzecinkowego spowoduje skrócenie do odpowiedniej ilości mniejsc po przecinku.
+
+
+Praca domowa:
+Zad 1:
+Zrob relacje jednokierunkowa np. Car do Engine
+Car zawiera: model, marke, typ(coupe,sedan), engine
+Engine zawiera: pojemnosc, moc, oznaczenie
+Car jest wlascicielem relacji
+
+Zad 2:
+Zrob relacje dwukierunkowa: Matka i ojciec do dziecka
+Dziecko zawiera: imie, nazwisko, wiek, ojciec, matka
+Matka zawiera: imie, nazwisko, wiek, dziecko
+Ojciec zawiera: imie, nazwisko, wiek, dziecko
+Ojciec ma relacje do matki
+A matka do ojca
+Dziecko jest wlascicielem relacji
+
+
+DOPISAĆ TESTY!!!!!

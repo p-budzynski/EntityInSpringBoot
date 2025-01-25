@@ -1,0 +1,105 @@
+One-to-one jednokierunkowa:
+•	Person  posiada tylko jeden PersonDetails;
+•	W PersonDetails nie ma pola Person (jednokierunkowy character relacji);
+•	Właścicielem relacji jest Person (pole PersonDetails jest reprezentowane przez klucz obcy person_details_id w tabeli persons);
+
+Encja Person:
+@Entity
+@Table(name = "persons")
+public class Person {
+
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @OneToOne
+    @JoinColumn(name = "person_details_id")
+    private PersonDetails personDetailsBidirectional;
+
+    //konstr. bezp. i param., gettery/setery, toString
+}
+Encja PersonDetails:
+@Entity
+@Table(name = "person_details")
+public class PersonDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
+    private String pesel;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(unique = true)
+    private String phoneNumber;
+
+
+    //konstr. bezp. i param., gettery/setery, toString
+}
+
+
+@Repository
+@Transactional
+public class PersonCrudDaoImpl implements PersonCrudDao{
+
+    private EntityManager entityManager;
+
+    public PersonCrudDaoImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
+    @Override
+    public void save(Person personBidirectional) {
+        if (personBidirectional.getPersonDetails() != null && personBidirectional.getPersonDetails().getId() == null)
+            entityManager.persist(personBidirectional.getPersonDetails());
+        entityManager.persist(personBidirectional);
+    }
+
+    @Override
+    public Person get(Long id) {
+        return entityManager.find(Person.class, id);
+    }
+
+    @Override
+    public void update(Person personBidirectional) {
+        if (personBidirectional.getPersonDetails() != null) {
+            PersonDetails pd = entityManager.merge(personBidirectional.getPersonDetails());
+        }
+        entityManager.merge(personBidirectional);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Person toDelete = get(id);
+        entityManager.remove(toDelete.getPersonDetails());
+        entityManager.remove(toDelete); zamiana kolejności – efektywniej!
+    }
+}
+
+
+persist() – związuje obiekt z kontekstem utrwalania (wprowadza w stan managed); -- polaczenie pomiedzy baza danych a obiektem w javie
+merge() – zwraca nowy obiekt powiązany z kontekstem utrwalania, utworzony na podstawie obiektu przekazanego w parametrze; -- zapis zmienionego obiektu do bazy
+
+Komentarz do metody save:
+Najpierw należy pobrać z parametru Person obiekt typu PersonDetails i go persystować  -
+po wcześniejszym sprawdzeniu czy nie jest nullem i czy nie ma już nadanego id, ponieważ to by oznaczało w naszym kodzie,
+że PersonDetails należy już do jakiejś Persony. Następnie persystujemy parameter Person.
+
+Komentarz do metody update:
+Najpierw należy pobrać z parametru Person obiekt typu PersonDetails i sprawdzić czy nie jest nullem – jeżeli nie jest, to
+ mergujemy ten obiekt. Metoda merge zwraca obiekt tego typu (PersonDetails) – na końcu mergujemy parameter Person.
+
+Komentarz do metody delete:
+Metoda remove EntityManagera operuje na obiektach w stanie zarządanym (menaged)
+Należy zwrócić nowy obiekt Person powiązany z kontekstem utrwalania (za pomocą merge(personBidirectional) lub get),
+ następnie zwrócić z niego getterem powiązany obiekt PersonDetails oraz go usunąć, na koniec usunąć obiekt Person zwrócony przez merged(personBidirectional).

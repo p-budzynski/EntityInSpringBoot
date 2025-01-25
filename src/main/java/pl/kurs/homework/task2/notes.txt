@@ -1,0 +1,8 @@
+Zad 2:
+Zrob relacje dwukierunkowa: Matka i ojciec do dziecka
+Dziecko zawiera: imie, nazwisko, wiek, ojciec, matka
+Matka zawiera: imie, nazwisko, wiek, dziecko
+Ojciec zawiera: imie, nazwisko, wiek, dziecko
+Ojciec ma relacje do matki
+A matka do ojca
+Dziecko jest wlascicielem relacji

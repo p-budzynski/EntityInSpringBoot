@@ -1,0 +1,5 @@
+Zad 1:
+Zrob relacje jednokierunkowa np. Car do Engine
+Car zawiera: model, marke, typ(coupe,sedan), engine
+Engine zawiera: pojemnosc, moc, oznaczenie
+Car jest wlascicielem relacji
