@@ -28,8 +28,7 @@ public class Mother {
     @OneToOne(mappedBy= "mother")
     private Child child;
 
-    @OneToOne
-    @JoinColumn(name = "husband_id")
+    @OneToOne(mappedBy = "mother")
     private Father father;
 
     public Mother(String firstName, String lastName, Integer age) {

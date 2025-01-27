@@ -18,7 +18,6 @@ public class ChildApplication {
         Father father = new Father("Karol", "Wielki", 49);
         Child child = new Child("Kazimierz", "Wielki", 17, mother, father);
 
-        mother.setFather(father);
         father.setMother(mother);
 
         childDao.save(child);
@@ -27,11 +26,22 @@ public class ChildApplication {
         System.out.println(child);
 
         child.setLastName("Mały");
-        mother.setLastName("Mała");
+        childDao.update(child);
 
+        System.out.println("-----------------------------------------------");
+        System.out.println(child);
+
+        mother.setLastName("Mała");
         childDao.update(child);
 
         System.out.println(child);
+        System.out.println("-----------------------------------------------");
+
+        father.setLastName("Mały");
+        childDao.update(child);
+
+        System.out.println(child);
+        System.out.println("-----------------------------------------------");
 
         childDao.delete(1L);
 
