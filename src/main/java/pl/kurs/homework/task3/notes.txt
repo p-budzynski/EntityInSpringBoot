@@ -1,0 +1,8 @@
+Praca domowa 3:
+Stworz relacje autor -> ksiazki (autor moze miec wiele ksiazek, ale ksiazka moze miec tylko jednego autora)
+Autor ma posiadac imie, nazwisko, kraj pochodzenia, (ksiazki)
+Ksiazka ma posiadac tytul, (autor_id), wydawnictwo, typ
+
+Stworz dao z metodami - save, update, get, delete (po id), delete (po autorze),
+zastosuj na razie fetchtype eager
+* ewentualnie jezeli chcialbys to mozesz sprobowac napisac custom query z join fetch

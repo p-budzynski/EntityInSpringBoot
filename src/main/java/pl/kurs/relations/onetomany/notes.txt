@@ -1,0 +1,77 @@
+One-to-many jednokierunkowa:
+•	Driver posiada wiele Carów (lista, set lub mapa);
+•	W Car nie ma pola Driver (jednokierunkowy character relacji);
+•	Właścicielem relacji jest Car (tabela cars ma klucz obcy driver_id)
+
+Encja Car:
+@Entity
+@Table(name = "cars")
+public class Car {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_car")
+    private Long id;
+
+    @Column(nullable = false)
+    private String producer;
+
+    @Column(nullable = false)
+    private String model;
+
+    @Column(nullable = false)
+    private String engineType;
+
+    //@ManyToOne
+    //@JoinColumn(name = "driver_id")
+    //private Driver driver;
+
+    //konstr. bezp. i param., gettery/setery, toString
+}
+
+Encja Driver:
+@Entity
+@Table(name = "drivers")
+public class Driver  {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_driver")
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @OneToMany
+    @JoinColumn(name = "driver_id", referencedColumnName = "id_driver")
+    private Set<Car> cars = new HashSet<>();
+
+    //kontr. bezp. i param., gettery/setery, toString
+}
+
+@JoinColumn(name = “driver_id”…) oznacza, że do tabeli cars zostanie dodana kolumna z kluczem obcym, czyli cars jest właścicielem relacji.
+ Na poziomie bazy danych Driver nie wie jakie posiada Cary  ale każdy Car wie do jakiego Drivera należy.
+dlatego w kodzie wygląda to tak – wczytane obiekty Car biegną do rodzica Driver (bo one go znają), który ich nawet nie zna i się go uczepieją,
+ dlatego możemy przejrzeć listę aut Drivera i będą tam te samochody.
+Kiedy byśmy pominęli @JoinColumn(name = “driver_id”…)  to hibernate wygeneruje nam dodatkową tabelę drivers_cars.
+
+
+Domyślnie przy relacjach OneToMany oraz ManyToMany kolekcje ładują się leniwie – możemy to zmienić dopisując fetch = FetchType.EAGER nad kolekcją:(nie zalecane, marnowanie zasobow)
+
+@OneToMany(fetch = FetchType.EAGER)
+@JoinColumn(name = "driver_id", referencedColumnName = "id_driver")
+private Set<Car> cars = new HashSet<>();
+
+
+Praca domowa 3:
+Stworz relacje autor -> ksiazki (autor moze miec wiele ksiazek, ale ksiazka moze miec tylko jednego autora)
+Autor ma posiadac imie, nazwisko, kraj pochodzenia, (ksiazki)
+Ksiazka ma posiadac tytul, (autor_id), wydawnictwo, typ
+
+Stworz dao z metodami - save, update, get, delete (po id), delete (po autorze),
+zastosuj na razie fetchtype eager
+* ewentualnie jezeli chcialbys to mozesz sprobowac napisac custom query z join fetch
+
