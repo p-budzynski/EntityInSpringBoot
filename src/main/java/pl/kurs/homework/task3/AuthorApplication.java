@@ -31,7 +31,9 @@ public class AuthorApplication {
 
         authorDao.update(author);
 
-        authorDao.delete(author);
+
+
+//        authorDao.delete(author);
 
 
     }
