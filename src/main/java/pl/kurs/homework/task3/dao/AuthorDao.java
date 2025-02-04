@@ -34,8 +34,9 @@ public class AuthorDao {
         for (Book book : managedAuthor.getBooks()) {
             entityManager.remove(book);
         }
-
         managedAuthor.getBooks().clear();
+
+        entityManager.flush();
         entityManager.merge(managedAuthor);
 
         for (Book book : author.getBooks()) {
@@ -58,23 +59,30 @@ public class AuthorDao {
                 .filter(book -> !author.getBooks().contains(book))
                 .collect(Collectors.toSet());
 
-        for (Book book : booksToRemove) {
-            entityManager.remove(book);
-        }
-
+        booksToRemove.forEach(entityManager::remove);
         managedAuthor.getBooks().removeAll(booksToRemove);
-        entityManager.merge(managedAuthor);
+
+        entityManager.flush();
 
         for (Book book : author.getBooks()) {
-            if (book.getId() == null && !managedAuthor.getBooks().contains(book)) {
-                entityManager.persist(book);
+            if (managedAuthor.getBooks().contains(book)) {
+                Book existingBook = managedAuthor.getBooks().stream()
+                        .filter(b -> b.equals(book))
+                        .findFirst()
+                        .orElseThrow();
+
+                existingBook.setTitle(book.getTitle());
+                existingBook.setPublisher(book.getPublisher());
+                existingBook.setType(book.getType());
+            } else {
+                if (book.getId() == null) {
+                    entityManager.persist(book);
+                }
                 managedAuthor.getBooks().add(book);
             }
         }
-
         entityManager.merge(managedAuthor);
     }
-
 
     public Author get(Long id) {
         return entityManager.find(Author.class, id);

@@ -39,6 +39,8 @@ public class DriverDao {
             entityManager.remove(car);
         }
         managedDriver.getCars().clear();
+
+        entityManager.flush();
         entityManager.merge(managedDriver);
 
         for (Car car : driver.getCars()) {
@@ -60,20 +62,28 @@ public class DriverDao {
                 .filter(car -> !driver.getCars().contains(car))
                 .collect(Collectors.toSet());
 
-        for (Car car : carsToRemove) {
-            entityManager.remove(car);
-        }
-
+        carsToRemove.forEach(entityManager::remove);
         managedDriver.getCars().removeAll(carsToRemove);
-        entityManager.merge(managedDriver);
+
+        entityManager.flush();
 
         for (Car car : driver.getCars()) {
-            if (car.getId() == null && !managedDriver.getCars().contains(car)) {
-                entityManager.persist(car);
+            if (managedDriver.getCars().contains(car)) {
+                Car existingCar = managedDriver.getCars().stream()
+                        .filter(c -> c.equals(car))
+                        .findFirst()
+                        .orElseThrow();
+
+                existingCar.setProducer(car.getProducer());
+                existingCar.setModel(car.getModel());
+                existingCar.setEngineType(car.getEngineType());
+            } else {
+                if (car.getId() == null) {
+                    entityManager.persist(car);
+                }
                 managedDriver.getCars().add(car);
             }
         }
-
         entityManager.merge(managedDriver);
     }
 
