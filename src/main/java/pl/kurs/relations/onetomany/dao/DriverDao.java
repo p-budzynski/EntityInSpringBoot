@@ -9,6 +9,7 @@ import pl.kurs.relations.onetomany.entity.Driver;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,23 +31,56 @@ public class DriverDao {
         return entityManager.find(Driver.class, id);
     }
 
-    public void update(Driver driver) {
-        Driver managedDriver = entityManager.merge(driver);
+    public void updateFirstWay(Driver driver) {
+        Driver managedDriver = get(driver.getId());
+        Set<Car> updateCars = new HashSet<>();
+
+        for (Car car : managedDriver.getCars()) {
+            entityManager.remove(car);
+        }
+        managedDriver.getCars().clear();
+        entityManager.merge(managedDriver);
 
         for (Car car : driver.getCars()) {
-            if (car != null && car.getId() == null) {
+            if (car.getId() == null) {
                 entityManager.persist(car);
+            } else {
+                car = entityManager.merge(car);
+            }
+            updateCars.add(car);
+        }
+        managedDriver.getCars().addAll(updateCars);
+        entityManager.merge(managedDriver);
+    }
+
+    public void updateSecondWay(Driver driver) {
+        Driver managedDriver = get(driver.getId());
+
+        Set<Car> carsToRemove = managedDriver.getCars().stream()
+                .filter(car -> !driver.getCars().contains(car))
+                .collect(Collectors.toSet());
+
+        for (Car car : carsToRemove) {
+            entityManager.remove(car);
+        }
+
+        managedDriver.getCars().removeAll(carsToRemove);
+        entityManager.merge(managedDriver);
+
+        for (Car car : driver.getCars()) {
+            if (car.getId() == null && !managedDriver.getCars().contains(car)) {
+                entityManager.persist(car);
+                managedDriver.getCars().add(car);
             }
         }
 
-        managedDriver.getCars().clear();
-        managedDriver.getCars().addAll(driver.getCars());
+        entityManager.merge(managedDriver);
     }
 
     public void delete(Long id) {
         Driver driver = get(id);
         if (driver != null) {
-            for (Car car : new HashSet<>(driver.getCars())) {
+            for (Car car : driver.getCars()) {
                 entityManager.remove(car);
             }
         }
@@ -55,7 +89,7 @@ public class DriverDao {
 
     public void delete(Driver driver) {
         Driver driverToDelete = entityManager.merge(driver);
-        for (Car car : new HashSet<>(driverToDelete.getCars())) {
+        for (Car car : driverToDelete.getCars()) {
             entityManager.remove(car);
         }
         entityManager.remove(driverToDelete);

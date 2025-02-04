@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 import pl.kurs.homework.task3.entity.Author;
 import pl.kurs.homework.task3.entity.Book;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,12 +27,16 @@ public class AuthorDao {
         entityManager.persist(author);
     }
 
-    public void update(Author author) {
+    public void updateFirstWay(Author author) {
         Author managedAuthor = get(author.getId());
+        Set<Book> updateBooks = new HashSet<>();
 
         for (Book book : managedAuthor.getBooks()) {
             entityManager.remove(book);
         }
+
+        managedAuthor.getBooks().clear();
+        entityManager.merge(managedAuthor);
 
         for (Book book : author.getBooks()) {
             if (book.getId() == null) {
@@ -38,11 +44,37 @@ public class AuthorDao {
             } else {
                 entityManager.merge(book);
             }
-            managedAuthor.getBooks().add(book);
+            updateBooks.add(book);
+        }
+
+        managedAuthor.getBooks().addAll(updateBooks);
+        entityManager.merge(managedAuthor);
+    }
+
+    public void updateSecondWay(Author author) {
+        Author managedAuthor = get(author.getId());
+
+        Set<Book> booksToRemove = managedAuthor.getBooks().stream()
+                .filter(book -> !author.getBooks().contains(book))
+                .collect(Collectors.toSet());
+
+        for (Book book : booksToRemove) {
+            entityManager.remove(book);
+        }
+
+        managedAuthor.getBooks().removeAll(booksToRemove);
+        entityManager.merge(managedAuthor);
+
+        for (Book book : author.getBooks()) {
+            if (book.getId() == null && !managedAuthor.getBooks().contains(book)) {
+                entityManager.persist(book);
+                managedAuthor.getBooks().add(book);
+            }
         }
 
         entityManager.merge(managedAuthor);
     }
+
 
     public Author get(Long id) {
         return entityManager.find(Author.class, id);

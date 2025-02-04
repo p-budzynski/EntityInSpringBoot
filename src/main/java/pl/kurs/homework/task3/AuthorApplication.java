@@ -15,25 +15,33 @@ public class AuthorApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext ctx = SpringApplication.run(AuthorApplication.class, args);
 
-        Set<Book> books = new HashSet<>();
-        books.add(new Book("Wiedźmin: Ostatnie życzenie", "SuperNOWA", "Fantasy"));
-        books.add(new Book("Wiedźmin: Miecz przeznaczenia", "SuperNOWA", "Fantasy"));
-        books.add(new Book("Wiedźmin: Krew elfów", "SuperNOWA", "Fantasy"));
+        Set<Book> books1 = new HashSet<>();
+        books1.add(new Book("Wiedźmin: Ostatnie życzenie", "SuperNOWA", "Fantasy", "1234567890"));
+        books1.add(new Book("Wiedźmin: Krew elfów", "SuperNOWA", "Fantasy", "3456789012"));
 
-        Author author = new Author("Andrzej", "Sapkowski", "Polska", books);
+        Author author = new Author("Andrzej", "Sapkowski", "Polska", books1);
 
         AuthorDao authorDao = ctx.getBean(AuthorDao.class);
 
         authorDao.save(author);
 
-        books.add(new Book("Wiedźmin: Czas pogardy", "SuperNOWA", "Fantasy"));
-        books.add(new Book("Wiedźmin: Chrzest ognia", "SuperNOWA", "Fantasy"));
+        Set<Book> books2 = new HashSet<>();
+        books2.add(new Book("Wiedźmin: Chrzest ognia", "SuperNOWA", "Fantasy", "5678901234"));
+        books2.add(new Book("ZMIENIONY TYTUŁ", "SuperNOWA", "Fantasy", "3456789012"));
 
-        authorDao.update(author);
+        author.setBooks(books2);
+        authorDao.updateFirstWay(author);
+
+        Set<Book> books3 = new HashSet<>();
+        books3.add(new Book("Wiedźmin: Miecz przeznaczenia", "SuperNOWA", "Fantasy", "2345678901"));
+        books3.add(new Book("Wiedźmin: Czas pogardy", "SuperNOWA", "Fantasy", "4567890123"));
+        books3.add(new Book("ZMIENIONY TYTUŁ", "SuperNOWA", "Fantasy", "5678901234"));
+
+        author.setBooks(books3);
+        authorDao.updateSecondWay(author);
 
 
-
-//        authorDao.delete(author);
+        authorDao.delete(author);
 
 
     }
