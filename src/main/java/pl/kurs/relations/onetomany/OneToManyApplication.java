@@ -1,6 +1,5 @@
 package pl.kurs.relations.onetomany;
 
-import jakarta.transaction.Transactional;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -34,10 +33,17 @@ public class OneToManyApplication {
         cars2.add(new Car("BMW", "M5CS", "V8", "WBANXQAZ098765432"));
 
         driver.setCars(cars2);
-        driverDao.updateFirstWay(driver);
+        driver = driverDao.updateFirstWay(driver);
+
+        Set<Car> cars3 = new HashSet<>();
+        cars3.add(new Car("AUDI", "RSQ3", "R5", "APUD0987656789098"));
+        cars3.add(new Car("BMW", "E36 M3", "V8", "WBANXQAZ098765432"));
+
+        driver.setCars(cars3);
+        driver = driverDao.updateSecondWay(driver);
+
 
         driverDao.delete(driver);
-
 
 
     }

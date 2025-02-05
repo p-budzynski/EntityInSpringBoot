@@ -31,7 +31,7 @@ public class DriverDao {
         return entityManager.find(Driver.class, id);
     }
 
-    public void updateFirstWay(Driver driver) {
+    public Driver updateFirstWay(Driver driver) {
         Driver managedDriver = get(driver.getId());
         Set<Car> updateCars = new HashSet<>();
 
@@ -53,9 +53,11 @@ public class DriverDao {
         }
         managedDriver.getCars().addAll(updateCars);
         entityManager.merge(managedDriver);
+
+        return managedDriver;
     }
 
-    public void updateSecondWay(Driver driver) {
+    public Driver updateSecondWay(Driver driver) {
         Driver managedDriver = get(driver.getId());
 
         Set<Car> carsToRemove = managedDriver.getCars().stream()
@@ -85,6 +87,8 @@ public class DriverDao {
             }
         }
         entityManager.merge(managedDriver);
+
+        return managedDriver;
     }
 
     public void delete(Long id) {

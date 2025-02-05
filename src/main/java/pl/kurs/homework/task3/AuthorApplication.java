@@ -30,7 +30,7 @@ public class AuthorApplication {
         books2.add(new Book("ZMIENIONY TYTUŁ", "SuperNOWA", "Fantasy", "3456789012"));
 
         author.setBooks(books2);
-        authorDao.updateFirstWay(author);
+        author = authorDao.updateFirstWay(author);
 
         Set<Book> books3 = new HashSet<>();
         books3.add(new Book("Wiedźmin: Miecz przeznaczenia", "SuperNOWA", "Fantasy", "2345678901"));
@@ -38,11 +38,9 @@ public class AuthorApplication {
         books3.add(new Book("ZMIENIONY TYTUŁ", "SuperNOWA", "Fantasy", "5678901234"));
 
         author.setBooks(books3);
-        authorDao.updateSecondWay(author);
-
+        author = authorDao.updateSecondWay(author);
 
         authorDao.delete(author);
-
 
     }
 }

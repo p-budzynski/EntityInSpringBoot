@@ -27,7 +27,7 @@ public class AuthorDao {
         entityManager.persist(author);
     }
 
-    public void updateFirstWay(Author author) {
+    public Author updateFirstWay(Author author) {
         Author managedAuthor = get(author.getId());
         Set<Book> updateBooks = new HashSet<>();
 
@@ -50,9 +50,11 @@ public class AuthorDao {
 
         managedAuthor.getBooks().addAll(updateBooks);
         entityManager.merge(managedAuthor);
+
+        return managedAuthor;
     }
 
-    public void updateSecondWay(Author author) {
+    public Author updateSecondWay(Author author) {
         Author managedAuthor = get(author.getId());
 
         Set<Book> booksToRemove = managedAuthor.getBooks().stream()
@@ -82,6 +84,8 @@ public class AuthorDao {
             }
         }
         entityManager.merge(managedAuthor);
+
+        return managedAuthor;
     }
 
     public Author get(Long id) {
